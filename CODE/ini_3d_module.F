@@ -64,11 +64,11 @@ CONTAINS
                              es1, alphaw, pbarmb
       REAL (KIND=dbl_kind) :: T(NK3),H(NK3),TV(NK3),PILOG(NK3),ALPHA(NK3)  &
           ,QCBAR(NK3),QVSBAR(NK3)
-      REAL (KIND=dbl_kind) :: ZT1(NT1),PI1(NT1),TV1(NT1),PILOG1(NT1)
-      REAL (KIND=dbl_kind) :: PQ1(20),P1(NT1),T1(NT1),QV1(NT1),QC1(NT1)
-!      DATA PQ1/1012.0,991.2,945.5,893.8,836.1,772.8,705.2,635.0,564.5  &
-!              ,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9,133.6   &
-!              ,111.3,92.6/
+      REAL (KIND=dbl_kind) :: ZT1(10100),PI1(10100),TV1(10100),PILOG1(10100)
+      REAL (KIND=dbl_kind) :: PQ1(20),P1(10100),T1(10100),QV1(10100),QC1(10100)
+      DATA PQ1/1012.0,991.2,945.5,893.8,836.1,772.8,705.2,635.0,564.5  &
+              ,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9,133.6   &
+              ,111.3,92.6/
 !      DATA P1/1012.0,991.2,950.0,945.5,893.8,836.1,772.8,705.2,635.0   &
 !             ,564.5,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9    &
 !             ,133.6,111.3,92.6/
@@ -77,7 +77,7 @@ CONTAINS
 !             ,-726.4,-755.8,-749.0/
 !      DATA QV1/3*165.0,153.1,132.5,111.3,90.8,73.2,57.3,42.2,26.3   &
 !              ,14.3,8.3,4.3,1.9,0.8,0.3,0.1,0.1,0.1,0.1/
-      DATA QC1/21*0./
+      DATA QC1/10100*0./
 
       REAL (KIND=dbl_kind) ::  Q1OBS(20),Q2OBS(20)
       DATA Q1OBS/-0.25,0.18,1.41,2.51,3.29,3.71,3.95,4.09,4.07,3.81  &
@@ -102,21 +102,21 @@ CONTAINS
 
 !!!!!!!!!input profiles in paper (thick case)!!!!!!!!!
 !!!!!read P!, T1, QV1 profile from .dat file!!!!!
-      OPEN(11,'/home/B01209012/Ppro_ck.dat',STATUS='OLD')
-      OPEN(12,'/home/B01209012/tpro_ck.dat',STATUS='OLD')
-      OPEN(13,'/home/B01209012/Qpro_ck.dat',STATUS='OLD')
-      READ(11,*) (PQ1(K), K=1,NT1) !unit: Pa
+      OPEN(11,FILE='/home/B01209012/Ppro_ck.dat',STATUS='OLD')
+      OPEN(12,FILE='/home/B01209012/tpro_ck.dat',STATUS='OLD')
+      OPEN(13,FILE='/home/B01209012/Qpro_ck.dat',STATUS='OLD')
+!      READ(11,*) (PQ1(K), K=1,NT1) !unit: Pa
       READ(11,*) (P1(K), K=1,NT1)  !unit: Pa
       READ(12,*) (T1(K), K=1,NT1)  !unit: deg K
       READ(13,*) (QV1(K), K=1,NT1) !unit: g/kg
 
 !!!!!change unit!!!!!
-      DO K=1,NT1
-      PQ1(K)=PQ1(K)/100.0
+      DO 10 K=1,NT1
+!      PQ1(K)=PQ1(K)/100.0
       P1(K)=P1(K)/100.0
       T1(K)=(T1(K)-273.16)/1.E-01
       QV1(K)=QV1(K)*10.0
-
+   10 CONTINUE
 !!!!!close files
       close(13)
       close(12)

@@ -5,7 +5,7 @@
 #--------------------------------------------------------------------- 
 
 set echo  # echoes the commands
-set expname = lsm
+set expname = lsm_151220_ck5
 
 # hardscrabble configuration
 set subdir = '../..'
