@@ -59,24 +59,24 @@ CONTAINS
 
       integer nu1, nt1, k1, k2, it
       logical lf
-      DATA NU1/33/,NT1/21/
+      DATA NU1/33/,NT1/10100/
       REAL(kind=dbl_kind) :: rbcp, t8, p8, qv8, qc8, qi8, dummy, gdzbcp, cpbr, &
                              es1, alphaw, pbarmb
       REAL (KIND=dbl_kind) :: T(NK3),H(NK3),TV(NK3),PILOG(NK3),ALPHA(NK3)  &
           ,QCBAR(NK3),QVSBAR(NK3)
-      REAL (KIND=dbl_kind) :: ZT1(21),PI1(21),TV1(21),PILOG1(21)
-      REAL (KIND=dbl_kind) :: PQ1(20),P1(21),T1(21),QV1(21),QC1(21)
-      DATA PQ1/1012.0,991.2,945.5,893.8,836.1,772.8,705.2,635.0,564.5  &
-              ,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9,133.6   &
-              ,111.3,92.6/
-      DATA P1/1012.0,991.2,950.0,945.5,893.8,836.1,772.8,705.2,635.0   &
-             ,564.5,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9    &
-             ,133.6,111.3,92.6/
-      DATA T1/257.2,240.0,0.0,210.4,182.5,153.5,120.9,79.7,29.6,-21.3  &
-             ,-76.9,-142.1,-218.1,-303.4,-396.8,-493.1,-585.9,-666.9   &
-             ,-726.4,-755.8,-749.0/
-      DATA QV1/3*165.0,153.1,132.5,111.3,90.8,73.2,57.3,42.2,26.3   &
-              ,14.3,8.3,4.3,1.9,0.8,0.3,0.1,0.1,0.1,0.1/
+      REAL (KIND=dbl_kind) :: ZT1(NT1),PI1(NT1),TV1(NT1),PILOG1(NT1)
+      REAL (KIND=dbl_kind) :: PQ1(20),P1(NT1),T1(NT1),QV1(NT1),QC1(NT1)
+!      DATA PQ1/1012.0,991.2,945.5,893.8,836.1,772.8,705.2,635.0,564.5  &
+!              ,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9,133.6   &
+!              ,111.3,92.6/
+!      DATA P1/1012.0,991.2,950.0,945.5,893.8,836.1,772.8,705.2,635.0   &
+!             ,564.5,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9    &
+!             ,133.6,111.3,92.6/
+!      DATA T1/257.2,240.0,0.0,210.4,182.5,153.5,120.9,79.7,29.6,-21.3  &
+!             ,-76.9,-142.1,-218.1,-303.4,-396.8,-493.1,-585.9,-666.9   &
+!             ,-726.4,-755.8,-749.0/
+!      DATA QV1/3*165.0,153.1,132.5,111.3,90.8,73.2,57.3,42.2,26.3   &
+!              ,14.3,8.3,4.3,1.9,0.8,0.3,0.1,0.1,0.1,0.1/
       DATA QC1/21*0./
 
       REAL (KIND=dbl_kind) ::  Q1OBS(20),Q2OBS(20)
@@ -99,6 +99,29 @@ CONTAINS
                -9.7,  -6.6,  -3.2,  -0.3,   1.3,   1.3,   0.4,  -1.0,   &
                -2.9,  -4.3,  -4.5,  -2.8,  -0.6,  -0.5,  -2.2,  -2.5,   &
                -3.0 / 
+
+!!!!!!!!!input profiles in paper (thick case)!!!!!!!!!
+!!!!!read P!, T1, QV1 profile from .dat file!!!!!
+      OPEN(11,'/home/B01209012/Ppro_ck.dat',STATUS='OLD')
+      OPEN(12,'/home/B01209012/tpro_ck.dat',STATUS='OLD')
+      OPEN(13,'/home/B01209012/Qpro_ck.dat',STATUS='OLD')
+      READ(11,*) (PQ1(K), K=1,NT1) !unit: Pa
+      READ(11,*) (P1(K), K=1,NT1)  !unit: Pa
+      READ(12,*) (T1(K), K=1,NT1)  !unit: deg K
+      READ(13,*) (QV1(K), K=1,NT1) !unit: g/kg
+
+!!!!!change unit!!!!!
+      DO K=1,NT1
+      PQ1(K)=PQ1(K)/100.0
+      P1(K)=P1(K)/100.0
+      T1(K)=(T1(K)-273.16)/1.E-01
+      QV1(K)=QV1(K)*10.0
+
+!!!!!close files
+      close(13)
+      close(12)
+      close(11)
+!!!!!!!!!
 
       casename= 'GATE_PHASE_III'
 
@@ -322,6 +345,12 @@ CONTAINS
       TG(I,J)=SST
       ZROUGH(I,J)= ZRSEA
   300 CONTINUE
+
+!      position for profile interpolation
+!      DO 310 K = 1,NK2
+!      THBA(K) = ZT(K) 
+!      QVBAR(K) = ZT(K)
+!  310 CONTINUE
 
       locean = .true.
       psfx = .false.
