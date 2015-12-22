@@ -116,6 +116,13 @@ CONTAINS
       P1(K)=P1(K)/100.0
       T1(K)=(T1(K)-273.16)/1.E-01
       QV1(K)=QV1(K)*10.0
+
+!!!!!!!!!debug!!!!!!!!!
+!      IF (MY_TASK .EQ. 0 ) THEN
+!      PRINT*,T1(K),QV1(K),P1(K),K
+!      ENDIF
+!!!!!!!!!
+
    10 CONTINUE
 !!!!!close files
       close(13)
@@ -156,7 +163,7 @@ CONTAINS
 
 !     *** MIXED LAYER PROFILE ***
 
-      T1(3) = PI1(3) * T1(2) / PI1(2)
+!      T1(3) = PI1(3) * T1(2) / PI1(2)
 
 !     ADJUST T1, QV1, AND QC1. UNITS : P1, MB.
 
@@ -166,9 +173,15 @@ CONTAINS
       QV8 = QV1(K)
       QC8 = 0.D0
       QI8 = 0.D0
+!!!!!!!!!debug!!!!!!!!!
+      IF (MY_TASK .EQ. 0 ) THEN
+      PRINT*,T8,QV8,P8,k
+      ENDIF
+!!!!!!!!!
       CALL saturation ( 1, 1, K, T8, P8, QV8, QC8, QI8, DUMMY )
       QV1(K) = QV8
       QC1(K) = 0.
+
   120 CONTINUE
 
 !     DETERMINE HEIGHT OF PRESSURE LEVELS GIVEN T(K), QV(K), PI(K).
@@ -252,6 +265,12 @@ CONTAINS
       THBAR(K) = T(K) / PIBAR(K)
       H(K) = QVBAR(K) / QVSBAR(K)
       QCBAR(K) = 0.
+!!!!!!!!!debug!!!!!!!!!
+      IF (MY_TASK .EQ. 0 ) THEN
+      PRINT*,T1(K),QV1(K),P1(K),K
+      ENDIF
+!!!!!!!!!
+
   168 CONTINUE
 
   160 CONTINUE
