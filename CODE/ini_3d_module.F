@@ -59,25 +59,25 @@ CONTAINS
 
       integer nu1, nt1, k1, k2, it
       logical lf
-      DATA NU1/33/,NT1/10100/
+      DATA NU1/33/,NT1/21/
       REAL(kind=dbl_kind) :: rbcp, t8, p8, qv8, qc8, qi8, dummy, gdzbcp, cpbr, &
                              es1, alphaw, pbarmb
       REAL (KIND=dbl_kind) :: T(NK3),H(NK3),TV(NK3),PILOG(NK3),ALPHA(NK3)  &
           ,QCBAR(NK3),QVSBAR(NK3)
-      REAL (KIND=dbl_kind) :: ZT1(10100),PI1(10100),TV1(10100),PILOG1(10100)
-      REAL (KIND=dbl_kind) :: PQ1(20),P1(10100),T1(10100),QV1(10100),QC1(10100)
+      REAL (KIND=dbl_kind) :: ZT1(21),PI1(21),TV1(21),PILOG1(21)
+      REAL (KIND=dbl_kind) :: PQ1(20),P1(21),T1(21),QV1(21),QC1(21)
       DATA PQ1/1012.0,991.2,945.5,893.8,836.1,772.8,705.2,635.0,564.5  &
               ,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9,133.6   &
               ,111.3,92.6/
-!      DATA P1/1012.0,991.2,950.0,945.5,893.8,836.1,772.8,705.2,635.0   &
-!             ,564.5,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9    &
-!             ,133.6,111.3,92.6/
-!      DATA T1/257.2,240.0,0.0,210.4,182.5,153.5,120.9,79.7,29.6,-21.3  &
-!             ,-76.9,-142.1,-218.1,-303.4,-396.8,-493.1,-585.9,-666.9   &
-!             ,-726.4,-755.8,-749.0/
-!      DATA QV1/3*165.0,153.1,132.5,111.3,90.8,73.2,57.3,42.2,26.3   &
-!              ,14.3,8.3,4.3,1.9,0.8,0.3,0.1,0.1,0.1,0.1/
-      DATA QC1/10100*0./
+      DATA P1/1012.0,991.2,950.0,945.5,893.8,836.1,772.8,705.2,635.0   &
+             ,564.5,495.7,430.7,370.8,316.7,268.8,227.0,190.8,159.9    &
+             ,133.6,111.3,92.6/
+      DATA T1/257.2,240.0,0.0,210.4,182.5,153.5,120.9,79.7,29.6,-21.3  &
+             ,-76.9,-142.1,-218.1,-303.4,-396.8,-493.1,-585.9,-666.9   &
+             ,-726.4,-755.8,-749.0/
+      DATA QV1/3*165.0,153.1,132.5,111.3,90.8,73.2,57.3,42.2,26.3   &
+              ,14.3,8.3,4.3,1.9,0.8,0.3,0.1,0.1,0.1,0.1/
+      DATA QC1/21*0./
 
       REAL (KIND=dbl_kind) ::  Q1OBS(20),Q2OBS(20)
       DATA Q1OBS/-0.25,0.18,1.41,2.51,3.29,3.71,3.95,4.09,4.07,3.81  &
@@ -99,23 +99,31 @@ CONTAINS
                -9.7,  -6.6,  -3.2,  -0.3,   1.3,   1.3,   0.4,  -1.0,   &
                -2.9,  -4.3,  -4.5,  -2.8,  -0.6,  -0.5,  -2.2,  -2.5,   &
                -3.0 / 
+!!!!!!!!!for interpolation!!!!!!!!!
+      REAL :: thpro(10100), Qpro(10100), Zpro(10100), Zdiff(10100)   &
+              , DeltaZ, DeltaTH, DeltaQ, LOGIC1
+      REAL :: THBAR2(NK2), QVBAR2(NK2), SLOPETH, SLOPEQ, K4MR        &
+              , DeltaKR, FACTOR1  
+      INTEGER :: loc1, K4M, DeltaK
+!!!!!!!!!
+
 
 !!!!!!!!!input profiles in paper (thick case)!!!!!!!!!
 !!!!!read P!, T1, QV1 profile from .dat file!!!!!
-      OPEN(11,FILE='/home/B01209012/Ppro_ck.dat',STATUS='OLD')
-      OPEN(12,FILE='/home/B01209012/tpro_ck.dat',STATUS='OLD')
-      OPEN(13,FILE='/home/B01209012/Qpro_ck.dat',STATUS='OLD')
+!      OPEN(11,FILE='/home/B01209012/Ppro_ck.dat',STATUS='OLD')
+!      OPEN(12,FILE='/home/B01209012/tpro_ck.dat',STATUS='OLD')
+!      OPEN(13,FILE='/home/B01209012/Qpro_ck.dat',STATUS='OLD')
 !      READ(11,*) (PQ1(K), K=1,NT1) !unit: Pa
-      READ(11,*) (P1(K), K=1,NT1)  !unit: Pa
-      READ(12,*) (T1(K), K=1,NT1)  !unit: deg K
-      READ(13,*) (QV1(K), K=1,NT1) !unit: g/kg
+!      READ(11,*) (P1(K), K=1,NT1)  !unit: Pa
+!      READ(12,*) (T1(K), K=1,NT1)  !unit: deg K
+!      READ(13,*) (QV1(K), K=1,NT1) !unit: g/kg
 
 !!!!!change unit!!!!!
-      DO 10 K=1,NT1
+!      DO 10 K=1,NT1
 !      PQ1(K)=PQ1(K)/100.0
-      P1(K)=P1(K)/100.0
-      T1(K)=(T1(K)-273.16)/1.E-01
-      QV1(K)=QV1(K)*10.0
+!      P1(K)=P1(K)/100.0
+!      T1(K)=(T1(K)-273.16)/1.E-01
+!      QV1(K)=QV1(K)*10.0
 
 !!!!!!!!!debug!!!!!!!!!
 !      IF (MY_TASK .EQ. 0 ) THEN
@@ -123,11 +131,11 @@ CONTAINS
 !      ENDIF
 !!!!!!!!!
 
-   10 CONTINUE
+!   10 CONTINUE
 !!!!!close files
-      close(13)
-      close(12)
-      close(11)
+!      close(13)
+!      close(12)
+!      close(11)
 !!!!!!!!!
 
       casename= 'GATE_PHASE_III'
@@ -266,9 +274,9 @@ CONTAINS
       H(K) = QVBAR(K) / QVSBAR(K)
       QCBAR(K) = 0.
 !!!!!!!!!debug!!!!!!!!!
-      IF (MY_TASK .EQ. 0 ) THEN
-      PRINT*,T1(K),QV1(K),P1(K),K
-      ENDIF
+!      IF (MY_TASK .EQ. 0 ) THEN
+!      PRINT*,T1(K),QV1(K),P1(K),K
+!      ENDIF
 !!!!!!!!!
 
   168 CONTINUE
@@ -365,11 +373,99 @@ CONTAINS
       ZROUGH(I,J)= ZRSEA
   300 CONTINUE
 
-!      position for profile interpolation
-!      DO 310 K = 1,NK2
-!      THBA(K) = ZT(K) 
-!      QVBAR(K) = ZT(K)
-!  310 CONTINUE
+!!!!!!!!!position for profile interpolation!!!!!!!!!
+      OPEN(14,FILE='/home/B01209012/thpro_ck.dat',STATUS='OLD')
+      OPEN(15,FILE='/home/B01209012/Qpro_ck.dat',STATUS='OLD')
+      OPEN(16,FILE='/home/B01209012/Zpro.dat',STATUS='OLD')
+
+      READ(14,*) (thpro(I), I=1,10100)  !unit: deg K
+      READ(15,*) (Qpro(I), I=1,10100) !unit: g/kg
+      READ(16,*) (Zpro(I), I=1,10100) !unit:
+      DO 310 I = 1,10100
+      Zpro(I)=Zpro(I)*1000.0
+      Qpro(I)=Qpro(I)*1.E-03
+  310 CONTINUE
+
+      K4M=0
+      DeltaK=0
+      DO 320 K = 1,NK2
+        if ((ZT(K) > 4000.0) .AND. (ZT(K) < 6000.0)) THEN
+          if (K4M > 0) CYCLE
+            K4M=K
+        endif
+        if (ZT(K) > 6000.0) THEN
+          if (DeltaK > 0) CYCLE
+            DeltaK=K-K4M
+        endif
+  320 CONTINUE
+      
+      K4MR=REAL(K4M)
+      DeltaKR=REAL(DeltaK)
+!      PRINT*,K4MR,DeltaKR
+
+      THBAR2(1)=294.9588
+      QVBAR2(1)=13.5556*1.E-3
+      THBAR(1)=THBAR2(1)
+      QVBAR(1)=QVBAR2(1)
+      DO 330 K = 2,NK2
+      THBAR2(K)=0
+      QVBAR2(K)=0
+      slopeTH=0
+      slopeQ=0
+      Zdiff=Zpro-ZT(K)
+!      PRINT*,'START'
+        DO 335 I = 2,10100
+        LOGIC1=Zdiff(I-1)*Zdiff(I)
+        IF (LOGIC1 > 0.) CYCLE
+          DeltaZ=Zpro(I)-Zpro(I-1)
+          DeltaTH=thpro(I)-thpro(I-1)
+          DeltaQ=Qpro(I)-Qpro(I-1)
+          THBAR2(K)=(ZT(K)-Zpro(I-1))*DeltaTH/DeltaZ+thpro(I-1)
+          QVBAR2(K)=(ZT(K)-Zpro(I-1))*DeltaQ/DeltaZ+Qpro(I-1)
+!          PRINT*,DeltaZ,DeltaTH,DeltaQ,THBAR(K),QVBAR(K),K
+    335 CONTINUE
+      IF (ZT(K) > 4000.0) THEN
+        loc1=maxloc(Zdiff,DIM=1)
+        DeltaZ=Zpro(loc1)-Zpro(loc1-1)
+        DeltaTH=thpro(loc1)-thpro(loc1-1)
+        DeltaQ=Qpro(loc1)-Qpro(loc1-1)
+        THBAR2(K)=(ZT(K)-Zpro(loc1-1))*DeltaTH/DeltaZ+thpro(loc1-1)
+        QVBAR2(K)=(ZT(K)-Zpro(loc1-1))*DeltaQ/DeltaZ+Qpro(loc1-1)
+!        slopeTH=(THBAR(K)-THBAR(K-1))/(ZT(K)-ZT(K-1))
+!        slopeQ=(QVBAR(K)-QVBAR(K-1))/(ZT(K)-ZT(K-1))
+        IF (ZT(K) < 6000.0) THEN
+          factor1=(REAL(K)-K4MR)/DeltaKR
+!          slopeTH=(THBAR2(K)-THBAR2(K4M)+(THBAR(K)-THBAR2(K))*factor1) &
+!                  /(ZT(K)-ZT(K4M))
+!          slopeQ=(QVBAR2(K)-QVBAR2(K4M)+(QVBAR(K)-QVBAR2(K))*factor1) &
+!                  /(ZT(K)-ZT(K4M))
+          THBAR2(K)=THBAR2(K)+factor1*(THBAR(K)-THBAR2(K))
+          QVBAR2(K)=QVBAR2(K)+factor1*(QVBAR(K)-QVBAR2(K))
+!          PRINT*,(REAL(K)-K4MR),DeltaKR,(REAL(K)-K4MR)/DeltaKR
+        ELSE
+          THBAR2(K)=THBAR(K)
+          QVBAR2(K)=QVBAR(K)
+!          slopeTH=(THBAR(K)-THBAR(K4M))/(ZT(K)-ZT(K4M))
+!          slopeQ=(QVBAR(K)-QVBAR(K4M))/(ZT(K)-ZT(K4M))
+        ENDIF
+!        THBAR2(K)=(ZT(K)-Zpro(loc1-1))*slopeTH+thpro(loc1-1)
+!        QVBAR2(K)=(ZT(K)-Zpro(loc1-1))*slopeQ+Qpro(loc1-1)
+      ENDIF
+!      PRINT*,'END'
+!!!!!!!!!debug!!!!!!!!!
+      IF (MY_TASK .EQ. 0 ) THEN
+      PRINT*,ZT(K),THBAR2(K),QVBAR2(K),K
+      PRINT*,slopeTH,slopeQ,ZT(K4M)
+      PRINT*,factor1
+      ENDIF
+!!!!!!!!!
+      THBAR(K)=THBAR2(K)
+      QVBAR(K)=QVBAR2(K)
+  330 CONTINUE
+      
+!PRINT*,'finish'
+
+!!!!!!!!!
 
       locean = .true.
       psfx = .false.
