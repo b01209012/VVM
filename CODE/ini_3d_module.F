@@ -102,8 +102,7 @@ CONTAINS
 !!!!!!!!!for interpolation!!!!!!!!!
       REAL :: thpro(10100), Qpro(10100), Zpro(10100), Zdiff(10100)   &
               , DeltaZ, DeltaTH, DeltaQ, LOGIC1
-      REAL :: THBAR2(NK2), QVBAR2(NK2), SLOPETH, SLOPEQ, K4MR        &
-              , DeltaKR, FACTOR1  
+      REAL :: THBAR2(NK2), QVBAR2(NK2), K4MR, DeltaKR, FACTOR1  
       INTEGER :: loc1, K4M, DeltaK
 !!!!!!!!!
 
@@ -374,18 +373,26 @@ CONTAINS
   300 CONTINUE
 
 !!!!!!!!!position for profile interpolation!!!!!!!!!
-      OPEN(14,FILE='/home/B01209012/thpro_ck.dat',STATUS='OLD')
-      OPEN(15,FILE='/home/B01209012/Qpro_ck.dat',STATUS='OLD')
+      
+      !read profile from dat file
+      !!!!!
+      OPEN(14,FILE='/home/B01209012/thpro_in.dat',STATUS='OLD')
+      OPEN(15,FILE='/home/B01209012/Qpro_in.dat',STATUS='OLD')
       OPEN(16,FILE='/home/B01209012/Zpro.dat',STATUS='OLD')
 
       READ(14,*) (thpro(I), I=1,10100)  !unit: deg K
       READ(15,*) (Qpro(I), I=1,10100) !unit: g/kg
-      READ(16,*) (Zpro(I), I=1,10100) !unit:
+      READ(16,*) (Zpro(I), I=1,10100) !unit: km
+      
+      !change unit: Zpro in meter, Qpro in kg/kg
+      !!!!!
       DO 310 I = 1,10100
       Zpro(I)=Zpro(I)*1000.0
       Qpro(I)=Qpro(I)*1.E-03
   310 CONTINUE
 
+      !for calculating  weighting factor
+      !!!!!
       K4M=0
       DeltaK=0
       DO 320 K = 1,NK2
@@ -398,11 +405,11 @@ CONTAINS
             DeltaK=K-K4M
         endif
   320 CONTINUE
-      
       K4MR=REAL(K4M)
       DeltaKR=REAL(DeltaK)
-!      PRINT*,K4MR,DeltaKR
-
+      
+      !do interpolation and extrapolation
+      !!!!!
       THBAR2(1)=294.9588
       QVBAR2(1)=13.5556*1.E-3
       THBAR(1)=THBAR2(1)
@@ -410,11 +417,8 @@ CONTAINS
       DO 330 K = 2,NK2
       THBAR2(K)=0
       QVBAR2(K)=0
-      slopeTH=0
-      slopeQ=0
       Zdiff=Zpro-ZT(K)
-!      PRINT*,'START'
-        DO 335 I = 2,10100
+        DO 335 I = 2,10100 !interpolation
         LOGIC1=Zdiff(I-1)*Zdiff(I)
         IF (LOGIC1 > 0.) CYCLE
           DeltaZ=Zpro(I)-Zpro(I-1)
@@ -422,49 +426,32 @@ CONTAINS
           DeltaQ=Qpro(I)-Qpro(I-1)
           THBAR2(K)=(ZT(K)-Zpro(I-1))*DeltaTH/DeltaZ+thpro(I-1)
           QVBAR2(K)=(ZT(K)-Zpro(I-1))*DeltaQ/DeltaZ+Qpro(I-1)
-!          PRINT*,DeltaZ,DeltaTH,DeltaQ,THBAR(K),QVBAR(K),K
     335 CONTINUE
-      IF (ZT(K) > 4000.0) THEN
+      IF (ZT(K) > 4000.0) THEN !extrapolation
         loc1=maxloc(Zdiff,DIM=1)
         DeltaZ=Zpro(loc1)-Zpro(loc1-1)
         DeltaTH=thpro(loc1)-thpro(loc1-1)
         DeltaQ=Qpro(loc1)-Qpro(loc1-1)
         THBAR2(K)=(ZT(K)-Zpro(loc1-1))*DeltaTH/DeltaZ+thpro(loc1-1)
         QVBAR2(K)=(ZT(K)-Zpro(loc1-1))*DeltaQ/DeltaZ+Qpro(loc1-1)
-!        slopeTH=(THBAR(K)-THBAR(K-1))/(ZT(K)-ZT(K-1))
-!        slopeQ=(QVBAR(K)-QVBAR(K-1))/(ZT(K)-ZT(K-1))
         IF (ZT(K) < 6000.0) THEN
           factor1=(REAL(K)-K4MR)/DeltaKR
-!          slopeTH=(THBAR2(K)-THBAR2(K4M)+(THBAR(K)-THBAR2(K))*factor1) &
-!                  /(ZT(K)-ZT(K4M))
-!          slopeQ=(QVBAR2(K)-QVBAR2(K4M)+(QVBAR(K)-QVBAR2(K))*factor1) &
-!                  /(ZT(K)-ZT(K4M))
           THBAR2(K)=THBAR2(K)+factor1*(THBAR(K)-THBAR2(K))
           QVBAR2(K)=QVBAR2(K)+factor1*(QVBAR(K)-QVBAR2(K))
-!          PRINT*,(REAL(K)-K4MR),DeltaKR,(REAL(K)-K4MR)/DeltaKR
         ELSE
           THBAR2(K)=THBAR(K)
           QVBAR2(K)=QVBAR(K)
-!          slopeTH=(THBAR(K)-THBAR(K4M))/(ZT(K)-ZT(K4M))
-!          slopeQ=(QVBAR(K)-QVBAR(K4M))/(ZT(K)-ZT(K4M))
         ENDIF
-!        THBAR2(K)=(ZT(K)-Zpro(loc1-1))*slopeTH+thpro(loc1-1)
-!        QVBAR2(K)=(ZT(K)-Zpro(loc1-1))*slopeQ+Qpro(loc1-1)
       ENDIF
-!      PRINT*,'END'
-!!!!!!!!!debug!!!!!!!!!
+      !!!!!!!!!debug!!!!!!!!!
       IF (MY_TASK .EQ. 0 ) THEN
       PRINT*,ZT(K),THBAR2(K),QVBAR2(K),K
-      PRINT*,slopeTH,slopeQ,ZT(K4M)
       PRINT*,factor1
       ENDIF
-!!!!!!!!!
+      !!!!!!!!!
       THBAR(K)=THBAR2(K)
       QVBAR(K)=QVBAR2(K)
   330 CONTINUE
-      
-!PRINT*,'finish'
-
 !!!!!!!!!
 
       locean = .true.
